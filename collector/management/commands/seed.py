@@ -1,26 +1,16 @@
 import requests
+import schedule
+import time
+import os
+from dotenv import load_dotenv
+
+
 from django.core.management.base import BaseCommand
-from ...models import City
+from ...models import City, Weather
 
 
-
-class Command(BaseCommand):
-    help = 'Populate City table with top 50 cities by population'
-
-
-    def handle(self, *args, **oprions):
-        cities = get_top_50_cities_by_populations()
-        for city_data in cities:
-            city = City(
-                name=city_data['name'],
-                country=city_data['country'],
-                population=city_data['population'],
-                lat=city_data['lat'],
-                lon=city_data['lon']
-            )
-            city.save()
-        self.stdout.write(self.style.SUCCESS('Successfully populated City table.'))
-
+load_dotenv()
+API_KEY = os.getenv('API_KEY')
 
 
 def get_top_50_cities_by_populations():
@@ -41,3 +31,48 @@ def get_top_50_cities_by_populations():
             final_data.append(intermediate_data)
 
         return final_data
+
+
+cities = get_top_50_cities_by_populations()
+
+
+class Command(BaseCommand):
+    help = 'Populate City table with top 50 cities by population'
+
+    def update_weather_data(self):
+        for city in City.objects.all():
+            response = requests.get(f"https://api.openweathermap.org/data/2.5/weather?lat={city.lat}&lon={city.lon}&appid={API_KEY}&units=metric")
+            data = response.json()
+
+            weather_data = Weather( 
+                    city=city,
+                    condition=data["weather"][0]["main"],
+                    condition_description=data["weather"][0]["description"],
+                    average_temp=data["main"]["temp"],
+                    feels_like_temp=data["main"]["feels_like"],
+                    min_temp=data["main"]["temp_min"],
+                    max_temp=data["main"]["temp_max"],
+                    pressure=data["main"]["pressure"],
+                    humidity=data["main"]["humidity"],
+                )
+            weather_data.save()
+
+
+    def handle(self, *args, **options):
+        for city_data in cities:
+            city = City(
+                name=city_data['name'],
+                country=city_data['country'],
+                population=city_data['population'],
+                lat=city_data['lat'],
+                lon=city_data['lon']
+            )
+            city.save()
+        
+        self.update_weather_data()
+        
+        schedule.every(1).hours.do(self.update_weather_data)
+
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
