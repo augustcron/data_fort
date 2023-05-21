@@ -7,6 +7,7 @@ from django.db import models
 class City(models.Model):
     name = models.CharField(max_length=70)
     country = models.CharField(max_length=70)
+    population = models.IntegerField()
     lat = models.FloatField()
     lon = models.FloatField()
 
