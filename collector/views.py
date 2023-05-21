@@ -37,3 +37,5 @@ def get_top_50_cities_by_populations():
         final_data.append(intermediate_data)
 
     return final_data
+
+pprint(get_top_50_cities_by_populations())
