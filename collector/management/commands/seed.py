@@ -1,5 +1,4 @@
 import requests
-import schedule
 import time
 import os
 from dotenv import load_dotenv
@@ -13,7 +12,14 @@ load_dotenv()
 API_KEY = os.getenv('API_KEY')
 
 
-def get_top_50_cities_by_populations():
+
+
+
+class Command(BaseCommand):
+    help = 'Populate City table with top 50 cities by population'
+
+
+    def get_top_50_cities_by_populations(self):
         cities_count = 50
         url = f"https://data.opendatasoft.com/api/records/1.0/search/?dataset=geonames-all-cities-with-a-population-1000%40public&q=&lang=en&rows={cities_count}&sort=population" # noqa
         r = requests.get(url)
@@ -32,12 +38,6 @@ def get_top_50_cities_by_populations():
 
         return final_data
 
-
-cities = get_top_50_cities_by_populations()
-
-
-class Command(BaseCommand):
-    help = 'Populate City table with top 50 cities by population'
 
     def update_weather_data(self):
         for city in City.objects.all():
@@ -59,6 +59,7 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
+        cities = self.get_top_50_cities_by_populations()
         for city_data in cities:
             city = City(
                 name=city_data['name'],
@@ -69,10 +70,7 @@ class Command(BaseCommand):
             )
             city.save()
         
-        self.update_weather_data()
         
-        schedule.every(1).hours.do(self.update_weather_data)
-
         while True:
-            schedule.run_pending()
-            time.sleep(1)
+            self.update_weather_data()
+            time.sleep(3600)

@@ -1,18 +1,28 @@
 version: "3.9"
 
 services:
+
   web:
     build: .
     command: sh -c "python /code/manage.py makemigrations && 
                     python /code/manage.py migrate && 
-                    python /code/manage.py runserver 0.0.0.0:8000
-                    python /code/manage.py seed"
+                    python /code/manage.py runserver 0.0.0.0:8000" 
     volumes:
       - .:/code
     ports:
       - 8000:8000
     depends_on:
       - db
+  
+  seed:
+    build: .
+    command: python /code/manage.py seed
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+    restart: on-failure
+
   db:
     image: postgres:13
     volumes:
