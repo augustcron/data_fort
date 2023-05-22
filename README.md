@@ -1,11 +1,29 @@
-docker-compose down -v
+# Тестовое задание для компании DataFort
 
-docker-compose up -d --build
+## Подготовка и запуск проекта
+### Склонируйте репозиторий на локальную машину
+    git clone https://github.com/augustcron/data_fort.git
+### Cоздайте .env файл и впишите в него API ключ
+    API_KEY=<API ключ сайта "https://openweathermap.org/">
+    # Для тестирования можно использовать мой: '27764587c1131277ba08fa03de44f381'
+### Соберите и запустите Docker контейнер
+    docker-compose up -d --build
+### Коллектор запущен и собирает данные о погоде в 50 крупнейших городах каждый час
+### Для доступа в админку Django создаем суперпользователя
+    docker-compose run --rm web python manage.py createsuperuser
+    # http://127.0.0.1:8000/admin/
 
-docker-compose run --rm web python manage.py createsuperuser
+## Структура базы данных
 
+Проект использует базу данных PostgreSQL для хранения информации о погоде в различных городах мира. База данных состоит из двух таблиц: City и Weather.
 
-command: sh -c "python /code/manage.py makemigrations && 
-                    python /code/manage.py migrate && 
-                    python /code/manage.py runserver 0.0.0.0:8000 &&
-                    python /code/manage.py seed"
+Таблица City содержит информацию о городах, в которых ведется учет погоды.
+Таблица Weather содержит информацию о погоде в различных городах.
+
+Таблицы City и Weather связаны между собой через поле city_id в таблице Weather, которое является внешним ключом, ссылается на id в таблице City.
+
+## Стек технологий использованный в проекте:
+- Python 3.10.4
+- Django 4.2.1
+- PostgreSQL
+Этот выбор был обусловлен требованиями к проекту, которые подразумевали частое изменение кода. Поэтому я выбрал технологии, которые обеспечивают высокую гибкость и расширяемость приложения, а также удобство поддержки.

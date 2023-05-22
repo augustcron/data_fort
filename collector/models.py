@@ -1,9 +1,6 @@
 from django.db import models
 
 
-from django.db import models
-
-
 class City(models.Model):
     name = models.CharField(max_length=70)
     country = models.CharField(max_length=70)
@@ -16,10 +13,7 @@ class City(models.Model):
 
 
 class Weather(models.Model):
-    city = models.ForeignKey(
-        City,
-        on_delete=models.CASCADE
-    )
+    city = models.ForeignKey(City, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     condition = models.CharField(max_length=70)
     condition_description = models.CharField(max_length=255)
@@ -31,4 +25,4 @@ class Weather(models.Model):
     humidity = models.IntegerField()
 
     def __str__(self):
-        return f'Погода для города {self.city} на {self.timestamp}'
+        return f"Погода для города {self.city} на {self.timestamp}"

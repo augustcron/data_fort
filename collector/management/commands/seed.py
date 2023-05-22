@@ -12,18 +12,16 @@ load_dotenv()
 API_KEY = os.getenv('API_KEY')
 
 
-
-
-
 class Command(BaseCommand):
     help = 'Populate City table with top 50 cities by population'
 
 
-    def get_top_50_cities_by_populations(self):
+    def get_top_50_cities_by_populations(self) -> list:
+        """Функция получения 50 крупнейших городов мира и добавления в бд"""
         cities_count = 50
         url = f"https://data.opendatasoft.com/api/records/1.0/search/?dataset=geonames-all-cities-with-a-population-1000%40public&q=&lang=en&rows={cities_count}&sort=population" # noqa
-        r = requests.get(url)
-        initial_data = r.json()["records"]
+        response = requests.get(url)
+        initial_data = response.json()["records"]
         final_data = []
         for index, element in enumerate(initial_data):
             intermediate_data = {
@@ -39,7 +37,7 @@ class Command(BaseCommand):
         return final_data
 
 
-    def update_weather_data(self):
+    def update_weather_data(self) -> None:
         for city in City.objects.all():
             response = requests.get(f"https://api.openweathermap.org/data/2.5/weather?lat={city.lat}&lon={city.lon}&appid={API_KEY}&units=metric")
             data = response.json()
